@@ -1,11 +1,10 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class FlutterAppBadger {
   static const MethodChannel _channel =
-      const MethodChannel('g123k/flutter_app_badger');
+      MethodChannel('g123k/flutter_app_badger');
 
   static Future<void> updateBadgeCount(int count) async {
     final mock = _mockUpdateBadgeCount;
@@ -14,7 +13,16 @@ class FlutterAppBadger {
       return;
     }
 
-    return _channel.invokeMethod('updateBadgeCount', {"count": count});
+    // Clamp negative inputs
+    final safe = count < 0 ? 0 : count;
+
+    try {
+      await _channel.invokeMethod<void>('updateBadgeCount', {"count": safe});
+    } on MissingPluginException {
+      // No-op on unsupported platforms / when plugin not registered
+    } on PlatformException {
+      // Optionally log or report if you want
+    }
   }
 
   static Future<void> removeBadge() async {
@@ -24,18 +32,28 @@ class FlutterAppBadger {
       return;
     }
 
-    return _channel.invokeMethod('removeBadge');
+    try {
+      await _channel.invokeMethod<void>('removeBadge');
+    } on MissingPluginException {
+      // No-op
+    } on PlatformException {
+      // Optionally log
+    }
   }
 
   static Future<bool> isAppBadgeSupported() async {
     final mock = _mockIsAppBadgeSupported;
-    if (mock != null) {
-      return mock();
-    }
+    if (mock != null) return mock();
 
-    bool? appBadgeSupported =
-        await _channel.invokeMethod('isAppBadgeSupported');
-    return appBadgeSupported ?? false;
+    try {
+      final bool? supported =
+          await _channel.invokeMethod<bool>('isAppBadgeSupported');
+      return supported ?? false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
   }
 
   static Future<void> Function(int count)? _mockUpdateBadgeCount;
