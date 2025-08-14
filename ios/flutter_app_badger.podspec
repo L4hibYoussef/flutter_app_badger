@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_app_badger'
-  s.version          = '1.3.0'
+  s.version          = '1.3.1'
   s.summary          = 'Plugin to update the app badge on the launcher (both for Android, iOS and macOS)'
   s.description      = <<-DESC
   Plugin to update the app badge on the launcher (both for Android, iOS and macOS)
